@@ -6,6 +6,10 @@
     - run through the examples
     - start just and experiment
     - sync with billy
+  - thoughts
+    - there likely needs to be two sets of docs
+      - one for consumers (javascript perspective)
+      - one for contributors (c perspective)
 
 - everything in this file is in draft mode as i ramp up on just
 - general thoughts (sync with billy on these)
@@ -127,47 +131,47 @@ etc | ... | ... | ... | ... |
 
 ## API contract
 
-```bash
-# log of things found in source code & examples
-# importing
-  # import shared library at default path?
+```js
+// log of things found in source code & examples
+// importing
+  // import shared library at default path?
   const { epoll } = just.library('epoll')
 
-  # ^ use some other path
+  // ^ use some other path
   const { epoll } = just.library('epoll', './override-epoll-with-this.so')
 
-# root/just.js
-  # wrapRequire
+// root/just.js
+  // wrapRequire
   const appRoot = just.sys.cwd()
   const { HOME, JUST_TARGET } = just.env()
   const justDir = JUST_TARGET || `${HOME}/.just`
-  # load the builtin modules
+  // load the builtin modules
   just.vm = library('vm').vm
   just.loop = library('epoll').epoll
   just.fs = library('fs').fs
   just.net = library('net').net
   just.sys = library('sys').sys
   just.env = wrapEnv(just.sys.env)
-  # overloads ArrayBuffer
-  # appears to have plans to do the same for SharedArrayBuffer
-  delete global.console # whats this about
+  // overloads ArrayBuffer
+  // appears to have plans to do the same for SharedArrayBuffer
+  delete global.console // whats this about
   global.process = {
       pid: just.sys.pid(),
       version: 'v15.6.0',
       arch: 'x64',
       env: just.env()
     }
-  # function main has all the goodies
+  // function main has all the goodies
 
 
-# just API contract: just is global? check root/config.js
+// just API contract: just is global? check root/config.js
   const version = just.version.just
-  const debug = false # override this via env var?
+  const debug = false // override this via env var?
 
   just
-    # Setup the target ObjectTemplate with 'just' property which holds the
-    # ^ basic functions in the runtime core @see root/just.h
-    # ^ where do the other fns come from? e.g. in root/just.js` theres a just.sys.X call
+    // Setup the target ObjectTemplate with 'just' property which holds the
+    // ^ basic functions in the runtime core @see root/just.h
+    // ^ where do the other fns come from? e.g. in root/just.js` theres a just.sys.X call
     .builtin()
     .chdir()
     .error()
@@ -184,7 +188,7 @@ etc | ... | ... | ... | ... |
     .version.kernel.release
     .version.kernel.version
     .version.v8
-    # root/just.js
+    // root/just.js
     .args
     .clearTimeout 
     .config
@@ -220,10 +224,26 @@ etc | ... | ... | ... | ... |
     .workerSource
     .vm
 
-# global object
+// global object
   global
     .process
     .require
     .inspector
 
+// just/config.js
+  // think this is the heart of just
+  module.exports = {
+    version,
+    libs, // root/lib/{filename}
+    modules, // somewhereElse/modules/{moduleName}/{moduleName}.o
+    capabilities,
+    target,
+    main,
+    v8flags,
+    embeds,
+    static: false, // ?
+    debug,
+    v8flagsFromCommandLine,
+  }
+...
 ```
